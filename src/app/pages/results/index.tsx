@@ -84,7 +84,6 @@ export default function Results(props: ResultProps) {
       {results && (
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Your Immigration Options</h2>
-          {/* Add your results display logic here */}
         </div>
       )}
     </div>

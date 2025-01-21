@@ -66,11 +66,6 @@ export async function assessEligibility(
       }),
     });
 
-    // if (!response.ok) {
-    //   throw new Error(`HTTP error! status: ${response.status}`);
-    //   response.
-    // }
-
     const data = await response.json();
     console.log({ data });
 

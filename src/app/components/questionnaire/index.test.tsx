@@ -4,7 +4,6 @@ import userEvent from "@testing-library/user-event";
 import Questionnaire from "./index";
 import { assessEligibility } from "@/app/services/eligibility";
 
-// Mock the eligibility service
 jest.mock("@/app/services/eligibility", () => ({
   assessEligibility: jest.fn().mockResolvedValue({ eligible: true }),
 }));
@@ -23,7 +22,6 @@ describe("Questionnaire", () => {
   it("renders the questionnaire form", () => {
     render(<Questionnaire {...mockProps} />);
 
-    // Check if important form elements are present
     expect(screen.getByText("Why do you want to move?")).toBeInTheDocument();
     expect(screen.getByText("What's your nationality?")).toBeInTheDocument();
     expect(
@@ -38,7 +36,6 @@ describe("Questionnaire", () => {
     const submitButton = screen.getByRole("button", { name: /continue/i });
     await user.click(submitButton);
 
-    // Check for validation error messages
     await waitFor(() => {
       const singleSelectErrors = screen.getAllByText('Please select an option');
 
@@ -63,7 +60,6 @@ describe("Questionnaire", () => {
     const user = userEvent.setup();
     render(<Questionnaire {...mockProps} />);
 
-    // Open nationality selection
     const nationalityButton = screen.getByRole("button", {
       name: "What's your nationality?",
     });
