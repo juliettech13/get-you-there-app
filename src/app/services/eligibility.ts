@@ -1,5 +1,5 @@
 import { getApiUrl } from "@/lib/utils";
-import { ResultInputs } from "../pages/results";
+import { EligibilityProfile } from "../pages/results";
 
 export interface VisaRequirement {
   type: string;
@@ -44,26 +44,18 @@ export interface EligibilityResult {
 const API_BASE_URL = getApiUrl();
 
 export async function assessEligibility(
-  profile: ResultInputs
+  profile: EligibilityProfile
 ): Promise<EligibilityResult> {
   try {
+    console.log({ profile });
+    debugger;
+
     const response = await fetch(`${API_BASE_URL}/api/v1/eligibility/assess`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        reasonForMove: profile.moveReason[0],
-        nationality: profile.nationality[0],
-        age: parseInt(profile.age),
-        jobOfferCountries: profile.jobOffers,
-        educationLevel: profile.education,
-        specializedSkills: profile.workExperience,
-        familyConnections: profile.familyConnections,
-        spokenLanguages: profile.languages,
-        hasFinancialResources: profile.financialResources === "yes",
-        preferredStayDuration: profile.stayDuration,
-      }),
+      body: JSON.stringify(profile),
     });
 
     const data = await response.json();
