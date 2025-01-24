@@ -10,7 +10,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage,
+  FormMessage
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,37 +18,44 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
+  CommandItem
 } from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
-  PopoverTrigger,
+  PopoverTrigger
 } from "@/components/ui/popover"
 
 import { QUESTIONS } from "@/app/data/questions";
-import { ResultInputs } from "@/app/pages/results";
+import { EligibilityProfile } from "@/app/pages/results";
 import { assessEligibility } from "@/app/services/eligibility";
 
 interface QuestionnaireProps {
   setStep: (step: number) => void;
   setRightPanel: (panel: string) => void;
-  setUserData: (data: ResultInputs) => void;
+  setUserData: (data: EligibilityProfile) => void;
 }
 
 const formSchema = z.object({
   id: z.string(),
-  moveReason: z.array(z.string()).min(1, 'Please select at least one option'),
-  nationality: z.array(z.string()).min(1, 'Please select at least one option'),
-  age: z.string({ required_error: 'Please select an option' }),
-  jobOffers: z.array(z.string()).min(1, 'Please select at least one option'),
-  education: z.string({ required_error: 'Please select an option' }),
-  workExperience: z.string({ required_error: 'Please select an option' }),
-  familyConnections: z.string().transform(val => val === 'true'),
-  languages: z.array(z.string()).min(1, 'Please select at least one option'),
-  financialResources: z.string({ required_error: 'Please select an option' }),
-  stayDuration: z.string({ required_error: 'Please select an option' }),
-  preferredCountry: z.array(z.string()).min(1, 'Please select at least one option')
+  reasonForMove: z
+    .array(z.string())
+    .min(1, "Please select at least one option"),
+  nationality: z.array(z.string()).min(1, "Please select at least one option"),
+  age: z.string({ required_error: "Please select an option" }),
+  jobOfferCountries: z
+    .array(z.string())
+    .min(1, "Please select at least one option"),
+  educationLevel: z.string({ required_error: "Please select an option" }),
+  specializedSkills: z
+    .array(z.string())
+    .min(1, "Please select at least one option"),
+  familyConnections: z.string(),
+  spokenLanguages: z
+    .array(z.string())
+    .min(1, "Please select at least one option"),
+  hasFinancialResources: z.string(),
+  preferredStayDuration: z.string({ required_error: "Please select an option" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -58,12 +65,30 @@ export default function Questionnaire(props: QuestionnaireProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      id: "",
+      reasonForMove: [],
+      nationality: [],
+      jobOfferCountries: [],
+      specializedSkills: [],
+      spokenLanguages: [],
+      familyConnections: "No",
+      hasFinancialResources: "No",
+      preferredStayDuration: "Not sure yet",
+    },
   });
 
-  async function onSubmit(data: FormValues) {
-    setUserData(data);
-    const result = await assessEligibility(data);
-    console.log({ result });
+  async function handleSubmit(data: FormValues) {
+    const transformedData: EligibilityProfile = {
+      ...data,
+      id: "id" + Math.random().toString(16).slice(2),
+      familyConnections: data.familyConnections === "Yes",
+      hasFinancialResources: data.hasFinancialResources.startsWith("Yes")
+    };
+
+    setUserData(transformedData);
+
+    await assessEligibility(transformedData);
     setRightPanel('results');
     setStep(2);
   }
@@ -71,7 +96,7 @@ export default function Questionnaire(props: QuestionnaireProps) {
   return (
     <div className="w-full max-w-2xl mx-auto p-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
           {QUESTIONS.map((question) => (
             <FormField
               key={question.id}
@@ -83,16 +108,22 @@ export default function Questionnaire(props: QuestionnaireProps) {
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>
-                        <Button variant="outline" className="w-full justify-between">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
                           {Array.isArray(field.value)
-                            ? field.value.join(', ')
-                            : field.value || `Select ${question.placeholder.toLowerCase()}`}
+                            ? field.value.join(", ")
+                            : field.value ||
+                              `Select ${question.placeholder.toLowerCase()}`}
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent className="w-full p-0">
                       <Command>
-                        <CommandInput placeholder={`Search ${question.placeholder.toLowerCase()}...`} />
+                        <CommandInput
+                          placeholder={`Search ${question.placeholder.toLowerCase()}...`}
+                        />
                         <CommandEmpty>No option found.</CommandEmpty>
                         <CommandGroup>
                           {question.options.map((option, index) => (
@@ -100,10 +131,16 @@ export default function Questionnaire(props: QuestionnaireProps) {
                               key={index}
                               value={option}
                               onSelect={() => {
-                                if (question.type === 'multiple') {
-                                  const currentValue = Array.isArray(field.value) ? field.value : [];
+                                if (question.type === "multiple") {
+                                  const currentValue = Array.isArray(
+                                    field.value
+                                  )
+                                    ? field.value
+                                    : [];
                                   const newValue = currentValue.includes(option)
-                                    ? currentValue.filter(item => item !== option)
+                                    ? currentValue.filter(
+                                        (item) => item !== option
+                                      )
                                     : [...currentValue, option];
                                   field.onChange(newValue);
                                 } else {
@@ -124,10 +161,19 @@ export default function Questionnaire(props: QuestionnaireProps) {
             />
           ))}
 
+          {Object.keys(form.formState.errors).length > 0 && (
+            <div className="text-red-500 text-sm">
+              {Object.entries(form.formState.errors).map(([field, error]) => (
+                <p key={field}>
+                  {field}: {error?.message as string}
+                </p>
+              ))}
+            </div>
+          )}
+
           <Button
             type="submit"
             className="w-full bg-brand-orange hover:bg-brand-orange/90"
-            onClick={() => onSubmit(form.getValues())}
           >
             Continue
           </Button>

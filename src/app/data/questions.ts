@@ -8,7 +8,7 @@ export interface Question {
 
 export const QUESTIONS: Question[] = [
   {
-    id: "moveReason",
+    id: "reasonForMove",
     question: "Why do you want to move?",
     type: "multiple",
     placeholder: 'a reason',
@@ -54,7 +54,7 @@ export const QUESTIONS: Question[] = [
     options: ["18-24", "25-34", "35-44", "45-54", "55-64", "65+"]
   },
   {
-    id: "jobOffers",
+    id: "jobOfferCountries",
     question: "Select the countries where you have a job offer from.",
     type: "multiple",
     placeholder: 'countries',
@@ -73,7 +73,7 @@ export const QUESTIONS: Question[] = [
     ]
   },
   {
-    id: "education",
+    id: "educationLevel",
     question: "What is your highest level of education?",
     type: "single",
     placeholder: 'latest degree earned',
@@ -89,28 +89,28 @@ export const QUESTIONS: Question[] = [
     ]
   },
   {
-    id: "workExperience",
+    id: "specializedSkills",
     question: "Do you have work experience in a skilled occupation?",
-    type: "single",
-    placeholder: 'how much experience you have',
+    type: "multiple",
+    placeholder: 'skills',
     options: [
       "No experience",
-      "Less than 1 year",
-      "1-3 years",
-      "3-5 years",
-      "5-10 years",
-      "10+ years"
+      "Engineering",
+      "Finance",
+      "Marketing",
+      "Sales",
+      "Other"
     ]
   },
   {
     id: "familyConnections",
     question: "Do you have any family members who are citizens or permanent residents of the country you want to move to?",
     type: "single",
-    placeholder: 'yes or no',
+    placeholder: 'Yes or No',
     options: ["Yes", "No"]
   },
   {
-    id: "languages",
+    id: "spokenLanguages",
     question: "Which language do you speak?",
     type: "multiple",
     placeholder: 'languages',
@@ -126,7 +126,7 @@ export const QUESTIONS: Question[] = [
     ]
   },
   {
-    id: "financialResources",
+    id: "hasFinancialResources",
     question: "Do you have sufficient financial resources to support yourself or your family while there?",
     type: "single",
     placeholder: 'how much resources',
@@ -139,7 +139,7 @@ export const QUESTIONS: Question[] = [
     ]
   },
   {
-    id: "stayDuration",
+    id: "preferredStayDuration",
     question: "Are you interested in living there permanently or do you prefer a temporary stay?",
     type: "single",
     placeholder: 'how long you plan to move',

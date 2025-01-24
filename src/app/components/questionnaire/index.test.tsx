@@ -1,26 +1,21 @@
-import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Questionnaire from "./index";
 import { assessEligibility } from "@/app/services/eligibility";
+import { mockQuestionnaireProps } from "@/app/mocks/components";
 
 jest.mock("@/app/services/eligibility", () => ({
   assessEligibility: jest.fn().mockResolvedValue({ eligible: true }),
 }));
 
 describe("Questionnaire", () => {
-  const mockProps = {
-    setStep: jest.fn(),
-    setRightPanel: jest.fn(),
-    setUserData: jest.fn()
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("renders the questionnaire form", () => {
-    render(<Questionnaire {...mockProps} />);
+    render(<Questionnaire {...mockQuestionnaireProps} />);
 
     expect(screen.getByText("Why do you want to move?")).toBeInTheDocument();
     expect(screen.getByText("What's your nationality?")).toBeInTheDocument();
@@ -31,21 +26,29 @@ describe("Questionnaire", () => {
 
   it("shows validation errors when submitting empty form", async () => {
     const user = userEvent.setup();
-    render(<Questionnaire {...mockProps} />);
+    render(<Questionnaire {...mockQuestionnaireProps} />);
 
     const submitButton = screen.getByRole("button", { name: /continue/i });
     await user.click(submitButton);
 
     await waitFor(() => {
-      const singleSelectErrors = screen.getAllByText('Please select an option');
+      // Check for multiple select validation messages
+      const multiSelectErrors = screen.getAllByText('Please select at least one option');
+      expect(multiSelectErrors.length).toBeGreaterThan(0);
 
-      expect(singleSelectErrors).toHaveLength(5);
+      // Check for single select validation messages
+      const singleSelectErrors = screen.getAllByText('Please select an option');
+      expect(singleSelectErrors.length).toBeGreaterThan(0);
+
+      // Verify specific fields have error messages
+      expect(screen.getByLabelText('How old are you?')).toHaveAttribute('aria-invalid', 'true');
+      expect(screen.getByLabelText("What's your nationality?")).toHaveAttribute('aria-invalid', 'true');
     });
   });
 
   it("handles single selection fields correctly", async () => {
     const user = userEvent.setup();
-    render(<Questionnaire {...mockProps} />);
+    render(<Questionnaire {...mockQuestionnaireProps} />);
 
     const ageButton = screen.getByRole("button", { name: "How old are you?" });
     await user.click(ageButton);
@@ -58,7 +61,7 @@ describe("Questionnaire", () => {
 
   it("handles multiple selection fields correctly", async () => {
     const user = userEvent.setup();
-    render(<Questionnaire {...mockProps} />);
+    render(<Questionnaire {...mockQuestionnaireProps} />);
 
     const nationalityButton = screen.getByRole("button", {
       name: "What's your nationality?",
@@ -75,7 +78,7 @@ describe("Questionnaire", () => {
 
   it("submits form successfully with valid data", async () => {
     const user = userEvent.setup();
-    render(<Questionnaire {...mockProps} />);
+    render(<Questionnaire {...mockQuestionnaireProps} />);
 
     const fields = [
       { button: "What's your nationality?", option: "Italy" },
@@ -86,7 +89,7 @@ describe("Questionnaire", () => {
       },
       {
         button: "Do you have work experience in a skilled occupation?",
-        option: "1-3 years",
+        option: "Engineering",
       },
       {
         button:
@@ -117,9 +120,9 @@ describe("Questionnaire", () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(mockProps.setStep).toHaveBeenCalledWith(2);
-      expect(mockProps.setRightPanel).toHaveBeenCalledWith("results");
-      expect(mockProps.setUserData).toHaveBeenCalled();
+      expect(mockQuestionnaireProps.setStep).toHaveBeenCalledWith(2);
+      expect(mockQuestionnaireProps.setRightPanel).toHaveBeenCalledWith("results");
+      expect(mockQuestionnaireProps.setUserData).toHaveBeenCalled();
       expect(assessEligibility).toHaveBeenCalled();
     });
   });
