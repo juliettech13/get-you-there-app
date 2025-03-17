@@ -1,16 +1,15 @@
-import { steps } from "@/app/data/steps";
+import { PanelProps } from "@/app/types/uiComponents";
 import { STRINGS } from "@/app/strings";
-
-interface PanelProps {
-  activeStep: number;
-}
+import { steps } from "@/app/data/steps";
 
 export default function Panel(props: PanelProps) {
   const { activeStep } = props;
 
   return (
     <div className="w-full h-screen bg-brand-beige p-4 sticky top-0">
-      <h1 className="text-2xl font-bold mb-2">{STRINGS.title}</h1>
+      <h1 className="text-2xl font-bold mb-2">
+        {STRINGS.globalOpportunitiesTitle}
+      </h1>
       <p className="text-sm text-gray-600 mb-6">{STRINGS.description}</p>
 
       <div className="relative">
@@ -42,10 +41,12 @@ export default function Panel(props: PanelProps) {
                   }
                 `}
               >
-                <span className="text-xs font-medium">
-                  {STRINGS.step} {step.id}:
-                </span>
-                <span className="ml-1 text-xs">{step.title}</span>
+                <p>
+                  <span className="text-xs font-medium">
+                    {STRINGS.step} {step.id}:
+                  </span>
+                  <span className="ml-1 text-xs">{step.title}</span>
+                </p>
               </div>
             </div>
           </div>

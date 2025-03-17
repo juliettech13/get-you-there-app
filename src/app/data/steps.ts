@@ -1,8 +1,4 @@
-interface Step {
-  id: number;
-  title: string;
-  description?: string;
-}
+import { Step } from "@/app/types/uiComponents";
 
 export const steps: Step[] = [
   {
