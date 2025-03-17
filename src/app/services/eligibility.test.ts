@@ -1,18 +1,25 @@
 import "@testing-library/jest-dom";
 import { assessEligibility } from "./eligibility";
 import { mockEligibilityProfile } from "@/app/mocks/eligibility";
-import { mockSuccessResponse } from "@/app/mocks/eligibility";
+import { mockSuccessfulEligibilityResults } from "@/app/mocks/eligibility";
 
 describe("Eligibility Service", () => {
+  const originalConsoleError = console.error;
+
   beforeEach(() => {
     jest.resetAllMocks();
     global.fetch = jest.fn();
+    console.error = jest.fn();
+  });
+
+  afterEach(() => {
+    console.error = originalConsoleError;
   });
 
   it("successfully calls the eligibility assessment endpoint", async () => {
     (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
-      json: async () => mockSuccessResponse
+      json: async () => mockSuccessfulEligibilityResults
     });
 
     const result = await assessEligibility(mockEligibilityProfile);
@@ -29,7 +36,7 @@ describe("Eligibility Service", () => {
       }
     );
 
-    expect(result).toEqual(mockSuccessResponse);
+    expect(result).toEqual(mockSuccessfulEligibilityResults);
   });
 
   it("handles API errors gracefully", async () => {
@@ -38,6 +45,11 @@ describe("Eligibility Service", () => {
 
     await expect(assessEligibility(mockEligibilityProfile)).rejects.toThrow(
       errorMessage
+    );
+
+    expect(console.error).toHaveBeenCalledWith(
+      "Error assessing eligibility:",
+      expect.any(Error)
     );
   });
 
@@ -72,6 +84,11 @@ describe("Eligibility Service", () => {
 
     await expect(assessEligibility(mockEligibilityProfile)).rejects.toThrow(
       "Network Error"
+    );
+
+    expect(console.error).toHaveBeenCalledWith(
+      "Error assessing eligibility:",
+      expect.any(Error)
     );
   });
 });

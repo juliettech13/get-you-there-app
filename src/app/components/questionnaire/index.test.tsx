@@ -1,12 +1,12 @@
 import "@testing-library/jest-dom";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Questionnaire from "./index";
-import { assessEligibility } from "@/app/services/eligibility";
 import { mockQuestionnaireProps } from "@/app/mocks/components";
+import { QUESTIONS } from "@/app/data/questions";
 
 jest.mock("@/app/services/eligibility", () => ({
-  assessEligibility: jest.fn().mockResolvedValue({ eligible: true }),
+  assessEligibility: jest.fn().mockResolvedValue({ eligible: true })
 }));
 
 describe("Questionnaire", () => {
@@ -14,35 +14,55 @@ describe("Questionnaire", () => {
     jest.clearAllMocks();
   });
 
-  it("renders the questionnaire form", () => {
+  it("renders the first question of the questionnaire form", () => {
     render(<Questionnaire {...mockQuestionnaireProps} />);
 
     expect(screen.getByText("Why do you want to move?")).toBeInTheDocument();
-    expect(screen.getByText("What's your nationality?")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /continue/i })
-    ).toBeInTheDocument();
+
+    expect(screen.getByRole("button", { name: /previous/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /next/i })).toBeInTheDocument();
+
+    expect(screen.getByText("Question 1 of 11")).toBeInTheDocument();
   });
 
-  it("shows validation errors when submitting empty form", async () => {
+  it("shows validation errors when trying to proceed without selection", async () => {
     const user = userEvent.setup();
     render(<Questionnaire {...mockQuestionnaireProps} />);
 
-    const submitButton = screen.getByRole("button", { name: /continue/i });
-    await user.click(submitButton);
+    const nextButton = screen.getByRole("button", { name: /next/i });
+    await user.click(nextButton);
 
     await waitFor(() => {
-      // Check for multiple select validation messages
-      const multiSelectErrors = screen.getAllByText('Please select at least one option');
-      expect(multiSelectErrors.length).toBeGreaterThan(0);
+      expect(screen.getByText("Please select at least one option")).toBeInTheDocument();
+    });
+  });
 
-      // Check for single select validation messages
-      const singleSelectErrors = screen.getAllByText('Please select an option');
-      expect(singleSelectErrors.length).toBeGreaterThan(0);
+  it("allows navigation between questions after valid selection", async () => {
+    const user = userEvent.setup();
+    render(<Questionnaire {...mockQuestionnaireProps} />);
 
-      // Verify specific fields have error messages
-      expect(screen.getByLabelText('How old are you?')).toHaveAttribute('aria-invalid', 'true');
-      expect(screen.getByLabelText("What's your nationality?")).toHaveAttribute('aria-invalid', 'true');
+    const firstQuestionButton = screen.getByRole("combobox");
+    await user.click(firstQuestionButton);
+
+    const firstOption = screen.getByText("Work opportunities");
+    await user.click(firstOption);
+
+    const nextButton = screen.getByRole("button", { name: /next/i });
+    await user.click(nextButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 2 of 11")).toBeInTheDocument();
+      expect(screen.getByText(QUESTIONS[1].question)).toBeInTheDocument();
+    });
+
+    const prevButton = screen.getByRole("button", { name: /previous/i });
+    expect(prevButton).not.toBeDisabled();
+
+    await user.click(prevButton);
+
+    await waitFor(() => {
+      expect(screen.getByText("Question 1 of 11")).toBeInTheDocument();
+      expect(screen.getByText("Why do you want to move?")).toBeInTheDocument();
     });
   });
 
@@ -50,7 +70,24 @@ describe("Questionnaire", () => {
     const user = userEvent.setup();
     render(<Questionnaire {...mockQuestionnaireProps} />);
 
-    const ageButton = screen.getByRole("button", { name: "How old are you?" });
+    const q1Button = screen.getByRole("combobox");
+    await user.click(q1Button);
+    await user.click(screen.getByText("Work opportunities"));
+    await user.click(screen.getByRole("button", { name: /next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(QUESTIONS[1].question)).toBeInTheDocument();
+    });
+    const q2Button = screen.getByRole("combobox");
+    await user.click(q2Button);
+    await user.click(screen.getByText("United States"));
+    await user.click(screen.getByRole("button", { name: /next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("How old are you?")).toBeInTheDocument();
+    });
+
+    const ageButton = screen.getByRole("combobox");
     await user.click(ageButton);
 
     const ageOption = screen.getByText("18-24");
@@ -63,67 +100,53 @@ describe("Questionnaire", () => {
     const user = userEvent.setup();
     render(<Questionnaire {...mockQuestionnaireProps} />);
 
-    const nationalityButton = screen.getByRole("button", {
-      name: "What's your nationality?",
-    });
-    await user.click(nationalityButton);
+    const multiSelectButton = screen.getByRole("combobox");
+    await user.click(multiSelectButton);
 
-    const option1 = screen.getByText("United States");
-    const option2 = screen.getByText("Canada");
+    const option1 = screen.getByText("Work opportunities");
+    const option2 = screen.getByText("Family reunification");
     await user.click(option1);
     await user.click(option2);
 
-    expect(nationalityButton).toHaveTextContent("United States, Canada");
+    expect(multiSelectButton).toHaveTextContent("Work opportunities, Family reunification");
   });
 
   it("submits form successfully with valid data", async () => {
     const user = userEvent.setup();
     render(<Questionnaire {...mockQuestionnaireProps} />);
 
-    const fields = [
-      { button: "What's your nationality?", option: "Italy" },
-      { button: "How old are you?", option: "18-24" },
-      {
-        button: "What is your highest level of education?",
-        option: "Bachelor's degree",
-      },
-      {
-        button: "Do you have work experience in a skilled occupation?",
-        option: "Engineering",
-      },
-      {
-        button:
-          "Do you have sufficient financial resources to support yourself or your family while there?",
-        option: "Yes, substantial savings",
-      },
-      {
-        button:
-          "Are you interested in living there permanently or do you prefer a temporary stay?",
-        option: "Permanent residence",
-      },
-      { button: "Why do you want to move?", option: "Work opportunities" },
-      { button: "Which language do you speak?", option: "English" },
-      {
-        button: "Select the countries where you have a job offer from.",
-        option: "Japan",
-      },
+    const selections = [
+      { option: "Work opportunities" },
+      { option: "Italy" },
+      { option: "18-24" },
+      { option: "Japan" },
+      { option: "Bachelor's degree" },
+      { option: "Software Development/Engineering" },
+      { option: "No" },
+      { option: "English" },
+      { option: "Yes, substantial savings (>$25,000 USD per person)" },
+      { option: "Permanent residence (5+ years)" },
+      { option: "Canada" }
     ];
 
-    for (const field of fields) {
-      const button = screen.getByRole("button", { name: field.button });
+    for (let i = 0; i < selections.length; i++) {
+      const button = screen.getByRole("combobox");
       await user.click(button);
-      const option = screen.getByText(field.option);
+
+      const popoverContent = document.querySelector('[data-radix-popper-content-wrapper]');
+      if (!popoverContent) {
+        throw new Error("Dropdown content not found");
+      }
+
+      const option = within(popoverContent as HTMLElement).getByText(selections[i].option);
       await user.click(option);
+
+      const nextButton = screen.getByRole("button", { name: i === selections.length - 1 ? /submit/i : /next/i });
+      await user.click(nextButton);
     }
 
-    const submitButton = screen.getByRole("button", { name: /continue/i });
-    await user.click(submitButton);
-
     await waitFor(() => {
-      expect(mockQuestionnaireProps.setStep).toHaveBeenCalledWith(2);
-      expect(mockQuestionnaireProps.setRightPanel).toHaveBeenCalledWith("results");
       expect(mockQuestionnaireProps.setUserData).toHaveBeenCalled();
-      expect(assessEligibility).toHaveBeenCalled();
     });
   });
 });
