@@ -58,14 +58,14 @@ export default function VisaRecommendationCard({
                 likelihood
               )}`}
             >
-              {likelihood}% Match
+              {likelihood}% {STRINGS.match}
             </span>
           </div>
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="p-2 hover:bg-cream rounded-full"
-          aria-label={isExpanded ? "Show less" : "Show more"}
+          aria-label={isExpanded ? STRINGS.showLess : STRINGS.showMore}
         >
           {isExpanded ? <ChevronUp /> : <ChevronDown />}
         </button>

@@ -117,7 +117,7 @@ export default function Questionnaire({ setUserData }: QuestionnaireProps) {
           </div>
 
           <div className="text-sm text-gray-500 mb-4">
-            Question {currentQuestionIndex + 1} of {totalQuestions}
+            {STRINGS.question} {currentQuestionIndex + 1} {STRINGS.of} {totalQuestions}
           </div>
 
           <FormField
@@ -156,9 +156,9 @@ export default function Questionnaire({ setUserData }: QuestionnaireProps) {
                   >
                     <Command className="max-h-full">
                       <CommandInput
-                        placeholder={`Search ${currentQuestion.placeholder.toLowerCase()}...`}
+                        placeholder={`${STRINGS.search} ${currentQuestion.placeholder.toLowerCase()}...`}
                       />
-                      <CommandEmpty>No option found.</CommandEmpty>
+                      <CommandEmpty>{STRINGS.noOptionFound}</CommandEmpty>
                       <CommandGroup className="overflow-y-auto">
                         {currentQuestion.options.map((option, index) => (
                           <CommandItem
@@ -210,7 +210,7 @@ export default function Questionnaire({ setUserData }: QuestionnaireProps) {
               className="flex items-center"
             >
               <ChevronLeft className="h-4 w-4 mr-2" />
-              {STRINGS.previous || 'Previous'}
+              {STRINGS.previous}
             </Button>
 
             {isLastQuestion ? (
@@ -218,7 +218,7 @@ export default function Questionnaire({ setUserData }: QuestionnaireProps) {
                 type="submit"
                 className="bg-brand-orange hover:bg-brand-orange/90 flex items-center"
               >
-                {STRINGS.submit || 'Submit'}
+                {STRINGS.submit}
               </Button>
             ) : (
               <Button
@@ -226,7 +226,7 @@ export default function Questionnaire({ setUserData }: QuestionnaireProps) {
                 onClick={handleNext}
                 className="bg-brand-orange hover:bg-brand-orange/90 flex items-center"
               >
-                {STRINGS.next || 'Next'}
+                {STRINGS.next}
                 <ChevronRight className="h-4 w-4 ml-2" />
               </Button>
             )}

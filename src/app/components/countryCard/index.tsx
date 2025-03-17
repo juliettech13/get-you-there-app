@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { CountryCardProps } from '@/app/types/countryCards';
 import { getISOCode } from '@/app/data/countriesToISO';
+import { STRINGS } from '@/app/strings';
 
 export function CountryCard({
   country,
@@ -33,7 +34,7 @@ export function CountryCard({
         <div>
           <h3 className="font-semibold text-gray-800">{country}</h3>
           {likelihood !== undefined && (
-            <p className="text-sm text-gray-600">Likelihood: {likelihood}%</p>
+            <p className="text-sm text-gray-600">{STRINGS.likelihood}: {likelihood}%</p>
           )}
         </div>
       </div>
